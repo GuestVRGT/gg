@@ -770,7 +770,7 @@
 
   // Your own narration clips, one per line. Put them next to this page as
   // clips/line0.mp3 ... clips/line6.mp3. Missing files use the browser voice.
-  const LINE_NAMES = [[], [0], [1], [2], [3], [4], [5]];
+  const LINE_NAMES = [[], [0], [1], [2], [3], [4, 5], [5]];
   // Your Cloudflare Worker, which holds the Inworld key. Replace with your URL.
   const SPEAK_URL = "https://lucky-art-dc78.guestvrgt.workers.dev/speak";
 
@@ -780,21 +780,32 @@
 
   // Fetches narration for every line using the current names, so renamed
   // players are spoken in your cloned voice. A failed line falls back to the browser voice.
+  // Clip sources, tried in order for each line:
+  // 1. Your Worker (live, with current names), if SPEAK_URL is set.
+  // 2. Ready-made files line0.mp3 ... line6.mp3 beside this page.
+  // 3. The browser voice (automatic when neither is available).
+  const clipFromFile = cues.map(() => false);
+
+  function loadStaticClip(i) {
+    return fetch(`line${i}.mp3`)
+      .then(r => (r.ok ? r.arrayBuffer() : null))
+      .then(buf => (buf ? audioCtx.decodeAudioData(buf) : null))
+      .then(buf => { if (buf) clipFromFile[i] = true; return buf; })
+      .catch(() => null);
+  }
+
   function loadLiveClips() {
-    if (!SPEAK_URL.startsWith("https://") || SPEAK_URL.includes("YOUR-WORKER")) {
-      editorNote.textContent =
-        "Status: Worker address not set in index.html (SPEAK_URL still has YOUR-WORKER). Using the browser voice.";
-      return Promise.resolve();
-    }
-    let lastError = "";
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return Promise.resolve();
     if (!audioCtx) audioCtx = new Ctx();
     const resumed = audioCtx.state === "suspended"
       ? audioCtx.resume() : Promise.resolve();
-    return resumed
-      .then(() => Promise.all(cues.map(cue =>
-        fetch(SPEAK_URL, {
+
+    const workerReady = SPEAK_URL.startsWith("https://") && !SPEAK_URL.includes("YOUR-WORKER");
+    let lastError = "";
+    const fromWorker = cues.map(cue => !workerReady
+      ? Promise.resolve(null)
+      : fetch(SPEAK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: cue.text(slides) }),
@@ -808,21 +819,34 @@
           })
           .then(buf => audioCtx.decodeAudioData(buf))
           .catch(err => { lastError = String(err && err.message ? err.message : err); return null; })
-      )))
-      .then(bufs => {
-        decodedClips = bufs;
-        const ok = bufs.filter(Boolean).length;
-        editorNote.textContent = ok === cues.length
-          ? `Status: connected to your cloned voice (${bufs.filter(Boolean).length} lines, first is ${bufs[0].duration.toFixed(1)} s).`
-          : `Status: ${ok} of ${cues.length} lines came from the Worker. Last error: ${lastError || "unknown"}. Using the browser voice for the rest.`;
+    );
+
+    return resumed
+      .then(() => Promise.all(fromWorker))
+      .then(bufs => Promise.all(bufs.map((buf, i) => buf || loadStaticClip(i))))
+      .then(final => {
+        decodedClips = final;
+        const ready = final.filter(Boolean).length;
+        const fromFiles = clipFromFile.filter(Boolean).length;
+        const fromWorkerCount = ready - fromFiles;
+        editorNote.textContent =
+          `Status: ${ready} of ${cues.length} lines ready (Worker ${fromWorkerCount}, files ${fromFiles}).` +
+          (lastError ? ` Worker error: ${lastError}.` : "") +
+          (ready < cues.length ? " Missing lines use the browser voice." : "");
       });
+  }
+
+  function lineChanged(i) {
+    return LINE_NAMES[i].some(k => slides[k].name !== ORIGINAL_NAMES[k]);
   }
 
   function playLine(index) {
     if (!narrationOn) return;
     stopNarration();
     const buf = decodedClips[index];
-    if (audioCtx && buf) {
+    // Ready-made files speak the original names only; skip them after a rename.
+    const usable = buf && !(clipFromFile[index] && lineChanged(index));
+    if (audioCtx && usable) {
       const src = audioCtx.createBufferSource();
       src.buffer = buf;
       src.connect(audioCtx.destination);
