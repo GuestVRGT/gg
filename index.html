@@ -771,66 +771,46 @@
   // Your own narration clips, one per line. Put them next to this page as
   // clips/line0.mp3 ... clips/line6.mp3. Missing files use the browser voice.
   const LINE_NAMES = [[], [0], [1], [2], [3], [4], [5]];
-  // Embedded clips (base64 MP3, one per line). The generator fills this in.
-  const EMBEDDED_CLIPS = /*__CLIPS__*/null;
+  // Your Cloudflare Worker, which holds the Inworld key. Replace with your URL.
+  const SPEAK_URL = "https://lucky-art-dc78.guestvrgt.workers.dev/speak";
 
   let audioCtx = null;
   let decodedClips = [];
   let activeSources = [];
 
-  function base64ToBuffer(b64) {
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return bytes.buffer;
-  }
-
-  // Runs inside the voice button click so browsers allow sound.
-  function enableEmbeddedClips() {
-    if (!EMBEDDED_CLIPS) return Promise.resolve();
+  // Fetches narration for every line using the current names, so renamed
+  // players are spoken in your cloned voice. A failed line falls back to the browser voice.
+  function loadLiveClips() {
+    if (!SPEAK_URL.startsWith("https://")) return Promise.resolve();
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return Promise.resolve();
     if (!audioCtx) audioCtx = new Ctx();
     const resumed = audioCtx.state === "suspended"
       ? audioCtx.resume() : Promise.resolve();
-    if (decodedClips.length) return resumed;
     return resumed
-      .then(() => Promise.all(EMBEDDED_CLIPS.map(b64 =>
-        audioCtx.decodeAudioData(base64ToBuffer(b64)))))
-      .then(bufs => { decodedClips = bufs; })
-      .catch(() => { decodedClips = []; });
-  }
-
-  const lineClips = cues.map((_, i) => {
-    const a = new Audio(`clips/line${i}.mp3`);
-    a.preload = "auto";
-    a.addEventListener("error", () => { a.failed = true; });
-    return a;
-  });
-
-  function lineChanged(i) {
-    return LINE_NAMES[i].some(k => slides[k].name !== ORIGINAL_NAMES[k]);
+      .then(() => Promise.all(cues.map(cue =>
+        fetch(SPEAK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: cue.text(slides) }),
+        })
+          .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.arrayBuffer(); })
+          .then(buf => audioCtx.decodeAudioData(buf))
+          .catch(() => null)
+      )))
+      .then(bufs => { decodedClips = bufs; });
   }
 
   function playLine(index) {
     if (!narrationOn) return;
     stopNarration();
-    if (!lineChanged(index) && audioCtx && decodedClips[index]) {
+    const buf = decodedClips[index];
+    if (audioCtx && buf) {
       const src = audioCtx.createBufferSource();
-      src.buffer = decodedClips[index];
+      src.buffer = buf;
       src.connect(audioCtx.destination);
       src.start();
       activeSources.push(src);
-      return;
-    }
-    const clip = lineClips[index];
-    if (!lineChanged(index) && !clip.failed) {
-      clip.currentTime = 0;
-      clip.play().catch(() => {
-        const next = cues[index + 1];
-        const seconds = ((next ? next.start : DURATION) - cues[index].start) / 1000;
-        speak(cues[index].text(slides), seconds);
-      });
       return;
     }
     const next = cues[index + 1];
@@ -841,7 +821,6 @@
   function stopNarration() {
     activeSources.forEach(s => { try { s.stop(); } catch (e) {} });
     activeSources = [];
-    lineClips.forEach(a => { a.pause(); a.currentTime = 0; });
     if (speechAvailable) speechSynthesis.cancel();
   }
 
@@ -931,7 +910,7 @@
 
   function updateNote() {
     editorNote.textContent =
-      "Narration uses the embedded clips when present, otherwise your browser voice (adjust pitch and speed above).";
+      "Narration uses your cloned voice through the Worker when it's set up, otherwise your browser voice. Press Play again after renaming players.";
   }
 
   $("resetChars").addEventListener("click", () => {
@@ -1106,7 +1085,7 @@
     narrationOn = true;
     voiceButton.textContent = "Restart With Voice";
     voiceButton.setAttribute("aria-pressed", "true");
-    enableEmbeddedClips().then(() => replay());
+    loadLiveClips().then(() => replay());
   });
 
   document.addEventListener("visibilitychange", () => {
