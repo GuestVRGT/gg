@@ -1,0 +1,865 @@
+  Save this as `gorilla-countdown.html` and open it in a browser. Everything is contained in one file, with no external assets or dependencies. Playback starts automatically; the optional preview voice uses your browser’s installed voices, so speech timing can vary slightly. The visual timeline uses a single animation clock and ends at exactly 16.5 seconds.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#141414">
+<title>Gorilla Tag — Top 5 Countdown</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --paper: #F8F9F6;
+    --ink: #3D3E3B;
+    --muted: #8C8D89;
+    --heavy: "Montserrat", "Arial Black", "Impact", sans-serif;
+    --clean: "Inter", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    background: #141414;
+    color: #eee;
+    font-family: var(--clean);
+    display: grid;
+    place-items: center;
+    padding: 18px 0;
+  }
+
+  main {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+  }
+
+  .frame {
+    position: relative;
+    width: min(90vw, 80vh, 720px);
+    height: min(90vw, 80vh, 720px);
+    flex: none;
+    overflow: hidden;
+    background: var(--paper);
+    isolation: isolate;
+    color-scheme: light;
+  }
+
+  /* A 720-unit composition scales uniformly at every viewport size. */
+  .canvas {
+    width: 720px;
+    height: 720px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: top left;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+    text-align: center;
+  }
+
+  [hidden] { display: none !important; }
+
+  .title-header {
+    position: absolute;
+    top: 92px;
+    width: 100%;
+    font-family: var(--heavy);
+    font-weight: 900;
+  }
+
+  .top-five {
+    font-size: 48px;
+    line-height: 1.15;
+    letter-spacing: 8px;
+    padding-left: 8px;
+  }
+
+  .influential {
+    margin-top: 8px;
+    font-size: 16px;
+    line-height: 1.4;
+    letter-spacing: 4px;
+    padding-left: 4px;
+    font-weight: 800;
+  }
+
+  .ground-title,
+  .players-title {
+    font-size: 28px;
+    line-height: 1.25;
+    letter-spacing: 5px;
+    padding-left: 5px;
+  }
+
+  .ground-title { margin-top: 6px; }
+  .players-title { margin-top: 2px; }
+
+  .divider {
+    width: 96px;
+    height: 2px;
+    background: #8C8D89;
+    margin: 25px auto 0;
+  }
+
+  .pills {
+    position: absolute;
+    top: 335px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .pill {
+    width: 24px;
+    height: 15px;
+    border-radius: 999px;
+    opacity: 0;
+    transform: scale(0);
+    will-change: transform, opacity;
+  }
+
+  .caption {
+    position: absolute;
+    top: 377px;
+    width: 100%;
+    color: #7C7D79;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    padding-left: 3px;
+    white-space: pre;
+  }
+
+  .wordmark {
+    position: absolute;
+    width: 290px;
+    height: 118px;
+    left: 215px;
+    top: 482px;
+    font-family: var(--heavy);
+    font-weight: 900;
+  }
+
+  .wordmark-gorilla,
+  .wordmark-tag {
+    position: absolute;
+    color: #8C8D89;
+    font-size: 54px;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .wordmark-gorilla { top: 0; left: 8px; }
+  .wordmark-tag { top: 51px; right: 17px; }
+
+  .wordmark-ground {
+    position: absolute;
+    z-index: 1;
+    left: 37px;
+    top: 40px;
+    font-size: 27px;
+    line-height: 1;
+    letter-spacing: 1px;
+    color: #6E706C;
+    -webkit-text-stroke: 6px var(--paper);
+    paint-order: stroke fill;
+  }
+
+  .player-header {
+    position: absolute;
+    top: 80px;
+    width: 100%;
+  }
+
+  .rank {
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: 4px;
+    padding-left: 4px;
+  }
+
+  .name {
+    margin: 14px 0 17px;
+    font-family: var(--heavy);
+    font-size: 42px;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: 7px;
+    padding-left: 7px;
+    transform-origin: center;
+    will-change: transform;
+  }
+
+  .accent {
+    height: 3px;
+    width: 72px;
+    margin: auto;
+    border-radius: 3px;
+  }
+
+  .character {
+    position: absolute;
+    width: 540px;
+    height: 420px;
+    left: 90px;
+    top: 204px;
+  }
+
+  .character svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .monke {
+    transform-box: view-box;
+    transform-origin: 180px 252px;
+    animation: breathe 2.2s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    50% { transform: translateY(-4px) scaleY(1.015); }
+  }
+
+  .canvas.finished .monke { animation-play-state: paused; }
+
+  .closed-eyes { opacity: 0; }
+
+  .player-footer {
+    position: absolute;
+    bottom: 51px;
+    width: 100%;
+  }
+
+  .footer-label {
+    color: #8C8D89;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    padding-left: 3px;
+  }
+
+  .progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 19px;
+  }
+
+  .progress span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #D0D1CD;
+  }
+
+  .progress span.active {
+    background: #3D3E3B;
+    transform: scale(1.25);
+  }
+
+  .flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .controls {
+    width: min(90vw, 720px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 1px solid #42433f;
+    border-radius: 9px;
+    background: #252623;
+    color: #efefeb;
+    font: 600 12px var(--clean);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  button:hover { background: #33342f; }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid #D96B27; outline-offset: 4px; }
+  button:disabled { opacity: .5; cursor: default; }
+
+  .timer {
+    font: 500 13px ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    color: #c2c3bc;
+    min-width: 137px;
+    text-align: center;
+  }
+
+  .timer .total { color: #74766e; }
+</style>
+</head>
+<body>
+<main>
+  <div class="frame" id="frame"
+       role="img" aria-label="Top five Gorilla Tag ground players countdown">
+    <div class="canvas" id="canvas">
+      <section class="scene" id="titleScene">
+        <div class="title-header">
+          <div class="top-five">TOP 5</div>
+          <div class="influential">MOST INFLUENTIAL</div>
+          <div class="ground-title">GTAG GROUND</div>
+          <div class="players-title">PLAYERS EVER</div>
+          <div class="divider"></div>
+        </div>
+
+        <div class="pills" aria-hidden="true">
+          <span class="pill" style="background:#9C5450"></span>
+          <span class="pill" style="background:#434441"></span>
+          <span class="pill" style="background:#C5AA6B"></span>
+          <span class="pill" style="background:#7A8B5B"></span>
+          <span class="pill" style="background:#D96B27"></span>
+        </div>
+
+        <div class="caption">5 PLAYERS   ONE COUNTDOWN</div>
+
+        <div class="wordmark" aria-label="Gorilla Ground Tag">
+          <div class="wordmark-gorilla">GORILLA</div>
+          <div class="wordmark-tag">TAG</div>
+          <div class="wordmark-ground">GROUND</div>
+        </div>
+      </section>
+
+      <section class="scene" id="playerScene" hidden>
+        <div class="player-header">
+          <div class="rank" id="rank"></div>
+          <div class="name" id="name"></div>
+          <div class="accent" id="accent"></div>
+        </div>
+
+        <div class="character" id="character"></div>
+
+        <div class="player-footer">
+          <div class="footer-label">TOP 5 / GTAG GROUND PLAYERS</div>
+          <div class="progress" id="progress" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </section>
+
+      <div class="flash" id="flash"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button type="button" id="replay">Replay 16.5s Intro</button>
+    <button type="button" id="voice" aria-pressed="false">
+      Unmute Preview Voice
+    </button>
+    <div class="timer" role="timer" aria-label="Playback time">
+      <span id="time">00:00.0</span>
+      <span class="total"> / 00:16.5</span>
+    </div>
+  </div>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const DURATION = 16500;
+  const $ = id => document.getElementById(id);
+  const frame = $("frame");
+  const canvas = $("canvas");
+  const titleScene = $("titleScene");
+  const playerScene = $("playerScene");
+  const character = $("character");
+  const rank = $("rank");
+  const name = $("name");
+  const accent = $("accent");
+  const flash = $("flash");
+  const time = $("time");
+  const voiceButton = $("voice");
+  const pills = [...document.querySelectorAll(".pill")];
+  const dots = [...$("progress").children];
+
+  const slides = [
+    {
+      start: 3000, end: 6000, rank: 5, name: "ACE",
+      body: "#9E3633", accent: "#9C5450", ears: true
+    },
+    {
+      start: 6000, end: 8500, rank: 4, name: "COSMO",
+      body: "#262725", accent: "#3D3E3B"
+    },
+    {
+      start: 8500, end: 11000, rank: 3, name: "BOBA",
+      body: "#C9A65B", accent: "#C5AA6B", hat: true, beard: true
+    },
+    {
+      start: 11000, end: 14000, rank: 2, name: "CANESIFY",
+      body: "#6A8F4E", accent: "#7A8B5B", ears: true
+    },
+    {
+      start: 14000, end: 15500, rank: 1, name: "???",
+      body: "#1E1F1D", accent: "#3D3E3B",
+      headband: true, silhouette: true
+    },
+    {
+      start: 15500, end: 16500, rank: 1, name: "IFORHOT",
+      body: "#E87424", accent: "#D96B27", headband: true
+    }
+  ];
+
+  const cues = [
+    {
+      start: 0, end: 3000,
+      text: "Who are the top five most influential GTag creators ever?"
+    },
+    {
+      start: 3000, end: 6000,
+      text: "At number five, it's Ace, a recent breakthrough creator."
+    },
+    {
+      start: 6000, end: 8500,
+      text: "Number four, Cosmo, an overall legend."
+    },
+    {
+      start: 8500, end: 11000,
+      text: "At number three, it's Boba, an early influence."
+    },
+    {
+      start: 11000, end: 14000,
+      text: "At two, it's Canesify, an editing pioneer."
+    },
+    {
+      start: 14000, end: 15500,
+      text: "At one, it's..."
+    },
+    {
+      start: 15500, end: 16500,
+      text: "...IFORHOT!"
+    }
+  ];
+
+  /*
+   * All variants share precisely the same base geometry.
+   * The silhouette keeps the headband and tails, omitting internal features.
+   */
+  function monkeSVG({
+    body, ears = false, hat = false, beard = false,
+    headband = false, silhouette = false
+  }) {
+    const outline = silhouette ? "#1E1F1D" : "#2B2C2A";
+    const bandRed = silhouette ? body : "#D63230";
+    const bandBlue = silhouette ? body : "#2458B8";
+
+    return `
+      <svg xmlns="http://www.w3.org/2000/svg"
+           viewBox="0 0 360 280" aria-hidden="true">
+        <ellipse cx="180" cy="252" rx="120" ry="10" fill="#E3E5E0"/>
+
+        <g class="monke" fill="${body}" stroke="${outline}"
+           stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+
+          <!-- Long arms terminate in rounded, fingerless hands. -->
+          <path d="M137 119
+                   C115 112 97 125 83 144
+                   C68 165 52 192 42 218
+                   C36 220 31 229 33 238
+                   C35 247 47 251 59 247
+                   C70 245 76 238 78 229
+                   C91 207 108 188 125 177
+                   C144 164 152 135 137 119Z"/>
+          <path d="M223 119
+                   C245 112 263 125 277 144
+                   C292 165 308 192 318 218
+                   C324 220 329 229 327 238
+                   C325 247 313 251 301 247
+                   C290 245 284 238 282 229
+                   C269 207 252 188 235 177
+                   C216 164 208 135 223 119Z"/>
+
+          <!-- Broad legless torso. -->
+          <path d="M126 119
+                   C139 108 159 105 180 105
+                   C201 105 221 108 234 119
+                   C249 139 247 168 238 193
+                   L226 229
+                   C219 247 199 251 180 251
+                   C161 251 141 247 134 229
+                   L122 193
+                   C113 168 111 139 126 119Z"/>
+
+          ${!silhouette ? `
+            <ellipse cx="180" cy="194" rx="34" ry="43"
+                     fill="#7D807E" stroke-width="1.5"/>
+          ` : ""}
+
+          <!-- Small side ears and a rounded dome. -->
+          <path d="M127 84 C109 75 108 111 127 111Z"/>
+          <path d="M233 84 C251 75 252 111 233 111Z"/>
+          <path d="M121 94
+                   C120 58 141 39 180 39
+                   C219 39 240 58 239 94
+                   L236 116
+                   C232 140 210 151 180 151
+                   C150 151 128 140 124 116Z"/>
+
+          ${ears ? `
+            <path d="M128 64 L119 17 L157 43Z" fill="#262725"/>
+            <path d="M203 43 L241 17 L232 64Z" fill="#262725"/>
+          ` : ""}
+
+          ${!silhouette ? `
+            <rect x="134" y="82" width="92" height="59" rx="21"
+                  fill="#8E918F" stroke-width="1.5"/>
+
+            <g class="open-eyes" stroke="#222222" stroke-width="1.5">
+              <rect x="147" y="94" width="23" height="18"
+                    rx=".5" fill="#FFFFFF"/>
+              <rect x="190" y="94" width="23" height="18"
+                    rx=".5" fill="#FFFFFF"/>
+              <rect x="159" y="99" width="8" height="9"
+                    fill="#222222" stroke="none"/>
+              <rect x="202" y="99" width="8" height="9"
+                    fill="#222222" stroke="none"/>
+            </g>
+
+            <g class="closed-eyes" fill="none"
+               stroke="#222222" stroke-width="3">
+              <path d="M147 104H170"/>
+              <path d="M190 104H213"/>
+            </g>
+
+            <g fill="none" stroke="#222222" stroke-width="2">
+              <path d="M174 119H177 M183 119H186"/>
+              <path d="M167 131H193"/>
+            </g>
+          ` : ""}
+
+          ${headband ? `
+            <g stroke-width="2">
+              <path d="M236 72 L255 78 L246 85 L233 80Z"
+                    fill="${bandRed}"/>
+              <path d="M235 79 L251 91 L239 94 L230 82Z"
+                    fill="${bandBlue}"/>
+              <path d="M123 68 Q180 61 237 68
+                       L238 84 Q180 78 122 84Z"
+                    fill="${bandBlue}"/>
+              <path d="M123 68 Q180 61 237 68
+                       L237.5 76 Q180 70 122.5 76Z"
+                    fill="${bandRed}" stroke="none"/>
+              <path d="M123 68 Q180 61 237 68
+                       L238 84 Q180 78 122 84Z"
+                    fill="none"/>
+            </g>
+          ` : ""}
+
+          ${beard ? `
+            <g fill="#EAECE8" stroke-width="2">
+              <path d="M142 120
+                       C140 135 142 151 153 159
+                       C162 168 172 172 180 173
+                       C188 172 198 168 207 159
+                       C218 151 220 135 218 120
+                       C206 128 196 130 180 130
+                       C164 130 154 128 142 120Z"/>
+              <path d="M180 121
+                       C170 112 161 115 154 121
+                       C148 125 140 126 136 120
+                       C136 135 148 141 159 137
+                       C170 135 175 130 180 127
+                       C185 130 190 135 201 137
+                       C212 141 224 135 224 120
+                       C220 126 212 125 206 121
+                       C199 115 190 112 180 121Z"/>
+            </g>
+          ` : ""}
+
+          ${hat ? `
+            <g>
+              <path d="M148 49 V6 H212 V49Z" fill="#262725"/>
+              <rect x="134" y="44" width="92" height="12"
+                    rx="3" fill="#1E1F1D"/>
+            </g>
+          ` : ""}
+        </g>
+      </svg>`;
+  }
+
+  // Prebuild every character so slide changes do not parse SVG mid-playback.
+  const characters = slides.map(slide => {
+    const node = document.createElement("div");
+    node.style.cssText = "position:absolute;inset:0";
+    node.innerHTML = monkeSVG(slide);
+    node.hidden = true;
+    character.appendChild(node);
+    return node;
+  });
+
+  const openEyes = characters[3].querySelector(".open-eyes");
+  const closedEyes = characters[3].querySelector(".closed-eyes");
+
+  function resize() {
+    canvas.style.transform = `scale(${frame.clientWidth / 720})`;
+  }
+  new ResizeObserver(resize).observe(frame);
+  resize();
+
+  const clamp = value => Math.max(0, Math.min(1, value));
+
+  // Evaluate cubic-bezier(.175,.885,.32,1.275) against elapsed time.
+  function springBezier(progress) {
+    if (progress <= 0) return 0;
+    if (progress >= 1) return 1;
+
+    const bezier = (t, p1, p2) =>
+      3 * (1 - t) * (1 - t) * t * p1 +
+      3 * (1 - t) * t * t * p2 + t * t * t;
+
+    let low = 0;
+    let high = 1;
+    for (let i = 0; i < 16; i++) {
+      const mid = (low + high) / 2;
+      if (bezier(mid, .175, .32) < progress) low = mid;
+      else high = mid;
+    }
+    return bezier((low + high) / 2, .885, 1.275);
+  }
+
+  let startTime = 0;
+  let elapsed = 0;
+  let animationFrame = 0;
+  let activeSlide = -2;
+  let activeCue = -1;
+  let playing = false;
+  let muted = true;
+
+  const speechAvailable =
+    "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+
+  let preferredVoice = null;
+
+  function loadVoices() {
+    if (!speechAvailable) return;
+    const voices = speechSynthesis.getVoices();
+    preferredVoice =
+      voices.find(v => v.lang === "en-US" && v.localService) ||
+      voices.find(v => v.lang === "en-US") ||
+      voices.find(v => /^en\b/i.test(v.lang)) ||
+      null;
+  }
+
+  if (speechAvailable) {
+    loadVoices();
+    speechSynthesis.addEventListener("voiceschanged", loadVoices);
+  } else {
+    voiceButton.disabled = true;
+    voiceButton.textContent = "Preview Voice Unavailable";
+  }
+
+  function speakCue(index) {
+    if (!speechAvailable || muted || index < 0) return;
+    speechSynthesis.cancel();
+
+    const cue = cues[index];
+    const utterance = new SpeechSynthesisUtterance(cue.text);
+    if (preferredVoice) utterance.voice = preferredVoice;
+    utterance.lang = "en-US";
+
+    const seconds = (cue.end - cue.start) / 1000;
+    const words = cue.text.trim().split(/\s+/).length;
+
+    // Fit an approximate speaking rate to each visual window.
+    utterance.rate = index === 5 ? 1.05 :
+      index === 6 ? 1.1 :
+      Math.max(1, Math.min(1.85, words / (seconds * 2.65)));
+
+    utterance.pitch = index === 6 ? 1.16 : 1;
+    utterance.volume = 1;
+    speechSynthesis.speak(utterance);
+  }
+
+  function setSlide(index) {
+    activeSlide = index;
+    titleScene.hidden = index >= 0;
+    playerScene.hidden = index < 0;
+
+    characters.forEach((node, i) => { node.hidden = i !== index; });
+
+    if (index < 0) {
+      frame.setAttribute(
+        "aria-label",
+        "Top five most influential Gorilla Tag ground players"
+      );
+      return;
+    }
+
+    const slide = slides[index];
+    rank.textContent = `NO. ${slide.rank}`;
+    name.textContent = slide.name;
+    accent.style.backgroundColor = slide.accent;
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle("active", i === Math.min(index, 4));
+    });
+
+    // Keep the teaser and reveal breathing phases aligned.
+    const phaseStart = index === 5 ? 14000 : slide.start;
+    const body = characters[index].querySelector(".monke");
+    body.style.animationDelay = `-${(elapsed - phaseStart) / 1000}s`;
+
+    frame.setAttribute(
+      "aria-label",
+      `Number ${slide.rank}: ${slide.name === "???" ? "mystery player" : slide.name}`
+    );
+  }
+
+  function render(t) {
+    elapsed = t;
+    let index = -1;
+    for (let i = 0; i < slides.length; i++) {
+      if (t >= slides[i].start) index = i;
+    }
+    if (index !== activeSlide) setSlide(index);
+
+    if (t < 3000) {
+      pills.forEach((pill, i) => {
+        const progress = clamp((t - (200 + i * 200)) / 200);
+        pill.style.opacity = String(clamp(progress * 4));
+        pill.style.transform = `scale(${springBezier(progress)})`;
+      });
+    }
+
+    // Exactly 180ms of closed eyelids, followed by a short reopening.
+    let blink = 0;
+    if (t >= 12200 && t < 12380) blink = 1;
+    else if (t >= 12380 && t < 12400) blink = 1 - (t - 12380) / 20;
+    openEyes.style.opacity = String(1 - blink);
+    closedEyes.style.opacity = String(blink);
+
+    const revealAge = t - 15500;
+    if (revealAge >= 0 && revealAge < 180) {
+      const p = revealAge / 180;
+      name.style.transform = `scale(${1 + .08 * Math.pow(1 - p, 3)})`;
+    } else {
+      name.style.transform = "scale(1)";
+    }
+
+    // A subtle, frame-wide sync pulse at the exact reveal boundary.
+    flash.style.opacity =
+      revealAge >= 0 && revealAge < 120
+        ? String(.24 * Math.pow(1 - revealAge / 120, 2))
+        : "0";
+
+    const tenths = Math.floor(t / 100);
+    const seconds = Math.floor(tenths / 10);
+    time.textContent =
+      `00:${String(seconds).padStart(2, "0")}.${tenths % 10}`;
+
+    let cueIndex = 0;
+    for (let i = 1; i < cues.length; i++) {
+      if (t >= cues[i].start) cueIndex = i;
+    }
+
+    if (cueIndex !== activeCue) {
+      activeCue = cueIndex;
+      if (t < DURATION) speakCue(cueIndex);
+    }
+  }
+
+  function tick(now) {
+    const t = Math.min(DURATION, now - startTime);
+    render(t);
+
+    if (t < DURATION) {
+      animationFrame = requestAnimationFrame(tick);
+    } else {
+      playing = false;
+      canvas.classList.add("finished");
+      if (speechAvailable) speechSynthesis.cancel();
+    }
+  }
+
+  function replay() {
+    cancelAnimationFrame(animationFrame);
+    if (speechAvailable) speechSynthesis.cancel();
+
+    playing = true;
+    activeSlide = -2;
+    activeCue = -1;
+    canvas.classList.remove("finished");
+
+    // Restart CSS breathing as well as the master animation clock.
+    const bodies = characters.map(node => node.querySelector(".monke"));
+    bodies.forEach(body => {
+      body.style.animation = "none";
+      body.style.animationDelay = "0s";
+    });
+    void canvas.offsetWidth;
+    bodies.forEach(body => { body.style.animation = ""; });
+
+    startTime = performance.now();
+    render(0);
+    animationFrame = requestAnimationFrame(tick);
+  }
+
+  $("replay").addEventListener("click", replay);
+
+  voiceButton.addEventListener("click", () => {
+    muted = !muted;
+    voiceButton.textContent =
+      muted ? "Unmute Preview Voice" : "Mute Preview Voice";
+    voiceButton.setAttribute("aria-pressed", String(!muted));
+
+    if (muted) {
+      speechSynthesis.cancel();
+    } else {
+      // Restart from the user gesture for an aligned, audible preview.
+      replay();
+    }
+  });
+
+  // Keep speech from accumulating while the page is in the background.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && speechAvailable) speechSynthesis.cancel();
+    if (!document.hidden && playing) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(tick);
+    }
+  });
+
+  window.addEventListener("pagehide", () => {
+    cancelAnimationFrame(animationFrame);
+    if (speechAvailable) speechSynthesis.cancel();
+  });
+
+  replay();
+})();
+</script>
+</body>
+</html>
+```
