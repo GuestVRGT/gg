@@ -807,7 +807,7 @@
         decodedClips = bufs;
         const ok = bufs.filter(Boolean).length;
         editorNote.textContent = ok === cues.length
-          ? "Status: connected to your cloned voice."
+          ? `Status: connected to your cloned voice (${bufs.filter(Boolean).length} lines, first is ${bufs[0].duration.toFixed(1)} s).`
           : `Status: ${ok} of ${cues.length} lines came from the Worker. Last error: ${lastError || "unknown"}. Using the browser voice for the rest.`;
       });
   }
@@ -841,7 +841,18 @@
   rateInput.addEventListener("input", () => {
     $("rateOut").textContent = Number(rateInput.value).toFixed(2);
   });
+  // Preview plays your cloned clip directly when it's loaded, so you can
+  // tell whether the phone's audio works. Otherwise it uses the browser voice.
   $("preview").addEventListener("click", () => {
+    const clip = decodedClips[0];
+    if (audioCtx && clip) {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const src = audioCtx.createBufferSource();
+      src.buffer = clip;
+      src.connect(audioCtx.destination);
+      src.start();
+      return;
+    }
     speak(`At number five, it's ${slides[0].name}, a recent breakthrough creator.`, 3);
   });
 
