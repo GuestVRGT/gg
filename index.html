@@ -772,7 +772,7 @@
   // clips/line0.mp3 ... clips/line6.mp3. Missing files use the browser voice.
   const LINE_NAMES = [[], [0], [1], [2], [3], [4], [5]];
   // Your Cloudflare Worker, which holds the Inworld key. Replace with your URL.
-  const SPEAK_URL = "https://lucky-art-dc78.guestvrgt.workers.dev/speak";
+  const SPEAK_URL = "https://lucky-art-dc78.guestvrgt.workers.dev/voice";
 
   let audioCtx = null;
   let decodedClips = [];
@@ -781,7 +781,12 @@
   // Fetches narration for every line using the current names, so renamed
   // players are spoken in your cloned voice. A failed line falls back to the browser voice.
   function loadLiveClips() {
-    if (!SPEAK_URL.startsWith("https://")) return Promise.resolve();
+    if (!SPEAK_URL.startsWith("https://") || SPEAK_URL.includes("YOUR-WORKER")) {
+      editorNote.textContent =
+        "Status: Worker address not set in index.html (SPEAK_URL still has YOUR-WORKER). Using the browser voice.";
+      return Promise.resolve();
+    }
+    let lastError = "";
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return Promise.resolve();
     if (!audioCtx) audioCtx = new Ctx();
@@ -796,9 +801,15 @@
         })
           .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.arrayBuffer(); })
           .then(buf => audioCtx.decodeAudioData(buf))
-          .catch(() => null)
+          .catch(err => { lastError = String(err && err.message ? err.message : err); return null; })
       )))
-      .then(bufs => { decodedClips = bufs; });
+      .then(bufs => {
+        decodedClips = bufs;
+        const ok = bufs.filter(Boolean).length;
+        editorNote.textContent = ok === cues.length
+          ? "Status: connected to your cloned voice."
+          : `Status: ${ok} of ${cues.length} lines came from the Worker. Last error: ${lastError || "unknown"}. Using the browser voice for the rest.`;
+      });
   }
 
   function playLine(index) {
