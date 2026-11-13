@@ -799,7 +799,13 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: cue.text(slides) }),
         })
-          .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.arrayBuffer(); })
+          .then(async r => {
+            if (!r.ok) {
+              const detail = (await r.text()).slice(0, 200);
+              throw new Error(`${r.status} ${detail}`);
+            }
+            return r.arrayBuffer();
+          })
           .then(buf => audioCtx.decodeAudioData(buf))
           .catch(err => { lastError = String(err && err.message ? err.message : err); return null; })
       )))
