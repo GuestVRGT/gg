@@ -471,7 +471,7 @@
     <button type="button" id="replay">Replay Silently</button>
     <div class="timer" role="timer" aria-label="Playback time">
       <span id="time">00:00.0</span>
-      <span class="total"> / 00:16.5</span>
+      <span class="total"> / 00:15.2</span>
     </div>
   </div>
 
@@ -500,7 +500,7 @@
 (() => {
   "use strict";
 
-  const DURATION = 16500;
+  const DURATION = 15250;
   const $ = id => document.getElementById(id);
   const frame = $("frame");
   const canvas = $("canvas");
@@ -519,18 +519,18 @@
   const dots = [...$("progress").children];
 
   const DEFAULT_SLIDES = [
-    { start: 3000, end: 6000, rank: 5, name: "ACE",
+    { start: 3400, end: 6100, rank: 5, name: "ACE",
       body: "#9E3633", accent: "#9C5450", ears: true },
-    { start: 6000, end: 8500, rank: 4, name: "COSMO",
+    { start: 6100, end: 8600, rank: 4, name: "COSMO",
       body: "#262725", accent: "#3D3E3B" },
-    { start: 8500, end: 11000, rank: 3, name: "BOBA",
+    { start: 8600, end: 11200, rank: 3, name: "BOBA",
       body: "#C9A65B", accent: "#C5AA6B", hat: true, beard: true },
-    { start: 11000, end: 14000, rank: 2, name: "CANESIFY",
+    { start: 11200, end: 14100, rank: 2, name: "CANESIFY",
       body: "#6A8F4E", accent: "#7A8B5B", ears: true },
-    { start: 14000, end: 15500, rank: 1, name: "???",
-      body: "#1E1F1D", accent: "#3D3E3B", headband: true, silhouette: true },
-    { start: 15500, end: 16500, rank: 1, name: "IFORHOT",
-      body: "#E87424", accent: "#D96B27", headband: true }
+    { start: 14100, end: 15100, rank: 1, name: "???",
+      body: "#1E1F1D", accent: "#3D3E3B", silhouette: true },
+    { start: 15100, end: 15250, rank: 1, name: "UNDEAD",
+      body: "#262725", accent: "#3D3E3B", ears: true }
   ];
 
   const SLOT_LABELS = ["NO. 5", "NO. 4", "NO. 3", "NO. 2", "NO. 1", "NO. 1 REVEAL"];
@@ -544,19 +544,19 @@
   const cues = [
     { start: 0, clip: 0, names: [],
       text: () => "Who are the top five most influential GTag creators ever?" },
-    { start: 3000, clip: 1, names: [0],
+    { start: 3400, clip: 1, names: [0],
       text: s => `At number five, it's ${s[0].name}, a recent breakthrough creator.` },
-    { start: 6000, clip: 2, names: [1],
+    { start: 6100, clip: 2, names: [1],
       text: s => `Number four, ${s[1].name}, an overall legend.` },
-    { start: 8500, clip: 3, names: [2],
+    { start: 8600, clip: 3, names: [2],
       text: s => `At number three, it's ${s[2].name}, an early influence.` },
-    { start: 11000, clip: 4, names: [3],
+    { start: 11200, clip: 4, names: [3],
       text: s => `At two, it's ${s[3].name}, an editing pioneer.` },
-    { start: 14000, clip: 5, names: [4, 5],
+    { start: 14100, clip: 5, names: [4, 5],
       text: s => s[4].name === "???"
         ? "At one, it's..."
         : `At one, it's ${s[4].name}...` },
-    { start: 15500, clip: null, names: [4, 5],
+    { start: 15100, clip: null, names: [4, 5],
       text: s => `...${s[5].name}!` }
   ];
 
@@ -1029,7 +1029,7 @@
       dot.classList.toggle("active", i === Math.min(index, 4));
     });
 
-    const phaseStart = index === 5 ? 14000 : slide.start;
+    const phaseStart = slide.start;
     const body = characters[index].querySelector(".monke");
     body.style.animationDelay = `-${(elapsed - phaseStart) / 1000}s`;
 
@@ -1061,7 +1061,7 @@
     if (openEyes) openEyes.style.opacity = String(1 - blink);
     if (closedEyes) closedEyes.style.opacity = String(blink);
 
-    const revealAge = t - 15500;
+    const revealAge = t - 15100;
     if (revealAge >= 0 && revealAge < 180) {
       const p = revealAge / 180;
       name.style.transform = `scale(${1 + .08 * Math.pow(1 - p, 3)})`;
