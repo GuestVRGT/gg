@@ -1,1 +1,1133 @@
-https://lucky-art-dc78.guestvrgt.workers.dev/voice
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F8F9F6">
+<title>Gorilla Tag — Top 5 Countdown</title>
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #F8F9F6;
+    --ink: #3D3E3B;
+    --muted: #8C8D89;
+    --heavy: "Montserrat", "Arial Black", "Impact", sans-serif;
+    --clean: "Inter", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--clean);
+    display: grid;
+    place-items: center;
+    padding: 18px 0;
+  }
+
+  main {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+  }
+
+  .frame {
+    position: relative;
+    width: min(90vw, 80vh, 720px);
+    height: min(90vw, 80vh, 720px);
+    flex: none;
+    overflow: hidden;
+    background: var(--paper);
+    isolation: isolate;
+  }
+
+  .canvas {
+    width: 720px;
+    height: 720px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: top left;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .scene { position: absolute; inset: 0; text-align: center; }
+
+  [hidden] { display: none !important; }
+
+  .title-header {
+    position: absolute;
+    top: 92px;
+    width: 100%;
+    font-family: var(--heavy);
+    font-weight: 900;
+  }
+
+  .top-five {
+    font-size: 48px;
+    line-height: 1.15;
+    letter-spacing: 8px;
+    padding-left: 8px;
+  }
+
+  .influential {
+    margin-top: 8px;
+    font-size: 16px;
+    line-height: 1.4;
+    letter-spacing: 4px;
+    padding-left: 4px;
+    font-weight: 800;
+  }
+
+  .ground-title,
+  .players-title {
+    font-size: 28px;
+    line-height: 1.25;
+    letter-spacing: 5px;
+    padding-left: 5px;
+  }
+
+  .ground-title { margin-top: 6px; }
+  .players-title { margin-top: 2px; }
+
+  .divider {
+    width: 96px;
+    height: 2px;
+    background: var(--muted);
+    margin: 25px auto 0;
+  }
+
+  .pills {
+    position: absolute;
+    top: 335px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .pill {
+    width: 24px;
+    height: 15px;
+    border-radius: 999px;
+    opacity: 0;
+    transform: scale(0);
+    will-change: transform, opacity;
+  }
+
+  .caption {
+    position: absolute;
+    top: 377px;
+    width: 100%;
+    color: #7C7D79;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    padding-left: 3px;
+    white-space: pre;
+  }
+
+  .wordmark {
+    position: absolute;
+    width: 290px;
+    height: 118px;
+    left: 215px;
+    top: 482px;
+    font-family: var(--heavy);
+    font-weight: 900;
+  }
+
+  .wordmark-gorilla,
+  .wordmark-tag {
+    position: absolute;
+    color: var(--muted);
+    font-size: 54px;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .wordmark-gorilla { top: 0; left: 8px; }
+  .wordmark-tag { top: 51px; right: 17px; }
+
+  .wordmark-ground {
+    position: absolute;
+    z-index: 1;
+    left: 37px;
+    top: 40px;
+    font-size: 27px;
+    line-height: 1;
+    letter-spacing: 1px;
+    color: #6E706C;
+    -webkit-text-stroke: 6px var(--paper);
+    paint-order: stroke fill;
+  }
+
+  .player-header { position: absolute; top: 80px; width: 100%; }
+
+  .rank {
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: 4px;
+    padding-left: 4px;
+  }
+
+  .name {
+    margin: 14px 0 17px;
+    font-family: var(--heavy);
+    font-size: 42px;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: 7px;
+    padding-left: 7px;
+    transform-origin: center;
+    will-change: transform;
+  }
+
+  .accent {
+    height: 3px;
+    width: 72px;
+    margin: auto;
+    border-radius: 3px;
+  }
+
+  .character {
+    position: absolute;
+    width: 540px;
+    height: 420px;
+    left: 90px;
+    top: 204px;
+  }
+
+  .character svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .monke {
+    transform-box: view-box;
+    transform-origin: 180px 252px;
+    animation: breathe 2.2s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    50% { transform: translateY(-4px) scaleY(1.015); }
+  }
+
+  .canvas.finished .monke { animation-play-state: paused; }
+
+  .closed-eyes { opacity: 0; }
+
+  .player-footer { position: absolute; bottom: 51px; width: 100%; }
+
+  .footer-label {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    padding-left: 3px;
+  }
+
+  .progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 19px;
+  }
+
+  .progress span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #D0D1CD;
+  }
+
+  .progress span.active {
+    background: var(--ink);
+    transform: scale(1.25);
+  }
+
+  .flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .controls {
+    width: min(90vw, 720px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  button {
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 1px solid #C9CAC5;
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: var(--ink);
+    font: 700 12px var(--clean);
+    letter-spacing: .5px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  button:hover { background: #EFF0EB; }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid #D96B27; outline-offset: 4px; }
+  button:disabled { opacity: .5; cursor: default; }
+
+  .timer {
+    font: 500 13px ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    min-width: 137px;
+    text-align: center;
+  }
+
+  .timer .total { color: var(--muted); }
+
+  /* Character editor */
+  .editor {
+    width: min(90vw, 720px);
+    background: #FFFFFF;
+    border: 1px solid #DCDDD8;
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+
+  .editor summary {
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: .5px;
+    user-select: none;
+  }
+
+  .editor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .card {
+    border: 1px solid #E4E5E0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: grid;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .card h3 {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-weight: 800;
+  }
+
+  .card label {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card input[type="text"] {
+    font: 600 12px var(--clean);
+    padding: 6px 8px;
+    border: 1px solid #C9CAC5;
+    border-radius: 6px;
+    min-width: 0;
+  }
+
+  .card input[type="color"] {
+    width: 48px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid #C9CAC5;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+  }
+
+  .checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+
+  .checks label {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  .editor-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .note { font-size: 11px; color: var(--muted); }
+  .voice-panel {
+    width: min(90vw, 720px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    background: #FFFFFF;
+    border: 1px solid #DCDDD8;
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .voice-panel select {
+    max-width: 280px;
+    font: 600 12px var(--clean);
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #C9CAC5;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="frame" id="frame"
+       role="img" aria-label="Top five Gorilla Tag ground players countdown">
+    <div class="canvas" id="canvas">
+      <section class="scene" id="titleScene">
+        <div class="title-header">
+          <div class="top-five">TOP 5</div>
+          <div class="influential">MOST INFLUENTIAL</div>
+          <div class="ground-title">GTAG GROUND</div>
+          <div class="players-title">PLAYERS EVER</div>
+          <div class="divider"></div>
+        </div>
+
+        <div class="pills" aria-hidden="true">
+          <span class="pill" style="background:#9C5450"></span>
+          <span class="pill" style="background:#434441"></span>
+          <span class="pill" style="background:#C5AA6B"></span>
+          <span class="pill" style="background:#7A8B5B"></span>
+          <span class="pill" style="background:#D96B27"></span>
+        </div>
+
+        <div class="caption">5 PLAYERS   ONE COUNTDOWN</div>
+
+        <div class="wordmark" aria-label="Gorilla Ground Tag">
+          <div class="wordmark-gorilla">GORILLA</div>
+          <div class="wordmark-tag">TAG</div>
+          <div class="wordmark-ground">GROUND</div>
+        </div>
+      </section>
+
+      <section class="scene" id="playerScene" hidden>
+        <div class="player-header">
+          <div class="rank" id="rank"></div>
+          <div class="name" id="name"></div>
+          <div class="accent" id="accent"></div>
+        </div>
+
+        <div class="character" id="character"></div>
+
+        <div class="player-footer">
+          <div class="footer-label">TOP 5 / GTAG GROUND PLAYERS</div>
+          <div class="progress" id="progress" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </section>
+
+      <div class="flash" id="flash"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button type="button" id="voice" aria-pressed="false">Play With Voice</button>
+    <button type="button" id="replay">Replay Silently</button>
+    <div class="timer" role="timer" aria-label="Playback time">
+      <span id="time">00:00.0</span>
+      <span class="total"> / 00:16.5</span>
+    </div>
+  </div>
+
+  <div class="voice-panel">
+    <label>Voice <select id="voiceSelect"></select></label>
+    <label>Pitch <input type="range" id="pitch" min="0.5" max="2" step="0.05" value="1.25">
+      <output id="pitchOut">1.25</output></label>
+    <label>Speed <input type="range" id="rate" min="0.5" max="1.6" step="0.05" value="1">
+      <output id="rateOut">1.00</output></label>
+    <button type="button" id="preview">Preview Voice</button>
+  </div>
+
+  <details class="editor" id="editor">
+    <summary>Customize characters</summary>
+    <div class="editor-grid" id="editorGrid"></div>
+    <div class="editor-actions">
+      <button type="button" id="resetChars">Reset to defaults</button>
+      <span class="note" id="editorNote">
+        Narration matches the original names. Changed names play silently.
+      </span>
+    </div>
+  </details>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const DURATION = 16500;
+  const $ = id => document.getElementById(id);
+  const frame = $("frame");
+  const canvas = $("canvas");
+  const titleScene = $("titleScene");
+  const playerScene = $("playerScene");
+  const character = $("character");
+  const rank = $("rank");
+  const name = $("name");
+  const accent = $("accent");
+  const flash = $("flash");
+  const time = $("time");
+  const voiceButton = $("voice");
+  const editorGrid = $("editorGrid");
+  const editorNote = $("editorNote");
+  const pills = [...document.querySelectorAll(".pill")];
+  const dots = [...$("progress").children];
+
+  const DEFAULT_SLIDES = [
+    { start: 3000, end: 6000, rank: 5, name: "ACE",
+      body: "#9E3633", accent: "#9C5450", ears: true },
+    { start: 6000, end: 8500, rank: 4, name: "COSMO",
+      body: "#262725", accent: "#3D3E3B" },
+    { start: 8500, end: 11000, rank: 3, name: "BOBA",
+      body: "#C9A65B", accent: "#C5AA6B", hat: true, beard: true },
+    { start: 11000, end: 14000, rank: 2, name: "CANESIFY",
+      body: "#6A8F4E", accent: "#7A8B5B", ears: true },
+    { start: 14000, end: 15500, rank: 1, name: "???",
+      body: "#1E1F1D", accent: "#3D3E3B", headband: true, silhouette: true },
+    { start: 15500, end: 16500, rank: 1, name: "IFORHOT",
+      body: "#E87424", accent: "#D96B27", headband: true }
+  ];
+
+  const SLOT_LABELS = ["NO. 5", "NO. 4", "NO. 3", "NO. 2", "NO. 1", "NO. 1 REVEAL"];
+  const ORIGINAL_NAMES = DEFAULT_SLIDES.map(s => s.name);
+
+  let slides = structuredClone(DEFAULT_SLIDES);
+
+  // Each line: when it starts, which recorded clip it uses (or null),
+  // which player names it depends on, and how to say it if a name changed.
+  // The reveal lines (cues 5 and 6) share a recording and switch together.
+  const cues = [
+    { start: 0, clip: 0, names: [],
+      text: () => "Who are the top five most influential GTag creators ever?" },
+    { start: 3000, clip: 1, names: [0],
+      text: s => `At number five, it's ${s[0].name}, a recent breakthrough creator.` },
+    { start: 6000, clip: 2, names: [1],
+      text: s => `Number four, ${s[1].name}, an overall legend.` },
+    { start: 8500, clip: 3, names: [2],
+      text: s => `At number three, it's ${s[2].name}, an early influence.` },
+    { start: 11000, clip: 4, names: [3],
+      text: s => `At two, it's ${s[3].name}, an editing pioneer.` },
+    { start: 14000, clip: 5, names: [4, 5],
+      text: s => s[4].name === "???"
+        ? "At one, it's..."
+        : `At one, it's ${s[4].name}...` },
+    { start: 15500, clip: null, names: [4, 5],
+      text: s => `...${s[5].name}!` }
+  ];
+
+  /*
+   * All variants share precisely the same base geometry.
+   * The silhouette keeps the headband and tails, omitting internal features.
+   */
+  function monkeSVG({
+    body, ears = false, hat = false, beard = false,
+    headband = false, silhouette = false
+  }) {
+    const outline = silhouette ? "#1E1F1D" : "#2B2C2A";
+    const bandRed = silhouette ? body : "#D63230";
+    const bandBlue = silhouette ? body : "#2458B8";
+
+    return `
+      <svg xmlns="http://www.w3.org/2000/svg"
+           viewBox="0 0 360 280" aria-hidden="true">
+        <ellipse cx="180" cy="252" rx="120" ry="10" fill="#E3E5E0"/>
+
+        <g class="monke" fill="${body}" stroke="${outline}"
+           stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+
+          <path d="M137 119
+                   C115 112 97 125 83 144
+                   C68 165 52 192 42 218
+                   C36 220 31 229 33 238
+                   C35 247 47 251 59 247
+                   C70 245 76 238 78 229
+                   C91 207 108 188 125 177
+                   C144 164 152 135 137 119Z"/>
+          <path d="M223 119
+                   C245 112 263 125 277 144
+                   C292 165 308 192 318 218
+                   C324 220 329 229 327 238
+                   C325 247 313 251 301 247
+                   C290 245 284 238 282 229
+                   C269 207 252 188 235 177
+                   C216 164 208 135 223 119Z"/>
+
+          <path d="M126 119
+                   C139 108 159 105 180 105
+                   C201 105 221 108 234 119
+                   C249 139 247 168 238 193
+                   L226 229
+                   C219 247 199 251 180 251
+                   C161 251 141 247 134 229
+                   L122 193
+                   C113 168 111 139 126 119Z"/>
+
+          ${!silhouette ? `
+            <ellipse cx="180" cy="194" rx="34" ry="43"
+                     fill="#7D807E" stroke-width="1.5"/>
+          ` : ""}
+
+          <path d="M127 84 C109 75 108 111 127 111Z"/>
+          <path d="M233 84 C251 75 252 111 233 111Z"/>
+          <path d="M121 94
+                   C120 58 141 39 180 39
+                   C219 39 240 58 239 94
+                   L236 116
+                   C232 140 210 151 180 151
+                   C150 151 128 140 124 116Z"/>
+
+          ${ears ? `
+            <path d="M128 64 L119 17 L157 43Z" fill="#262725"/>
+            <path d="M203 43 L241 17 L232 64Z" fill="#262725"/>
+          ` : ""}
+
+          ${!silhouette ? `
+            <rect x="134" y="82" width="92" height="59" rx="21"
+                  fill="#8E918F" stroke-width="1.5"/>
+
+            <g class="open-eyes" stroke="#222222" stroke-width="1.5">
+              <rect x="147" y="94" width="23" height="18"
+                    rx=".5" fill="#FFFFFF"/>
+              <rect x="190" y="94" width="23" height="18"
+                    rx=".5" fill="#FFFFFF"/>
+              <rect x="159" y="99" width="8" height="9"
+                    fill="#222222" stroke="none"/>
+              <rect x="202" y="99" width="8" height="9"
+                    fill="#222222" stroke="none"/>
+            </g>
+
+            <g class="closed-eyes" fill="none"
+               stroke="#222222" stroke-width="3">
+              <path d="M147 104H170"/>
+              <path d="M190 104H213"/>
+            </g>
+
+            <g fill="none" stroke="#222222" stroke-width="2">
+              <path d="M174 119H177 M183 119H186"/>
+              <path d="M167 131H193"/>
+            </g>
+          ` : ""}
+
+          ${headband ? `
+            <g stroke="${outline}" stroke-width="2" stroke-linejoin="round">
+              <path d="M238 74 L266 80 L262 92 L236 84Z" fill="${bandRed}"/>
+              <path d="M240 84 L262 96 L258 108 L236 92Z" fill="${bandBlue}"/>
+              <path d="M121 70 Q180 52 239 70 L240 86 Q180 68 120 86Z"
+                    fill="${bandBlue}"/>
+              <path d="M121 70 Q180 52 239 70 L239.6 77 Q180 59 120.4 77Z"
+                    fill="${bandRed}" stroke="none"/>
+            </g>
+          ` : ""}
+
+          ${beard ? `
+            <g fill="#EAECE8" stroke-width="2">
+              <path d="M142 120
+                       C140 135 142 151 153 159
+                       C162 168 172 172 180 173
+                       C188 172 198 168 207 159
+                       C218 151 220 135 218 120
+                       C206 128 196 130 180 130
+                       C164 130 154 128 142 120Z"/>
+              <path d="M180 121
+                       C170 112 161 115 154 121
+                       C148 125 140 126 136 120
+                       C136 135 148 141 159 137
+                       C170 135 175 130 180 127
+                       C185 130 190 135 201 137
+                       C212 141 224 135 224 120
+                       C220 126 212 125 206 121
+                       C199 115 190 112 180 121Z"/>
+            </g>
+          ` : ""}
+
+          ${hat ? `
+            <g>
+              <path d="M148 49 V6 H212 V49Z" fill="#262725"/>
+              <rect x="134" y="44" width="92" height="12"
+                    rx="3" fill="#1E1F1D"/>
+            </g>
+          ` : ""}
+        </g>
+      </svg>`;
+  }
+
+  let characters = [];
+  let openEyes = null;
+  let closedEyes = null;
+
+  function buildCharacters() {
+    character.innerHTML = "";
+    characters = slides.map(slide => {
+      const node = document.createElement("div");
+      node.style.cssText = "position:absolute;inset:0";
+      node.innerHTML = monkeSVG(slide);
+      node.hidden = true;
+      character.appendChild(node);
+      return node;
+    });
+    openEyes = characters[3].querySelector(".open-eyes");
+    closedEyes = characters[3].querySelector(".closed-eyes");
+  }
+
+  // ---------- Narration ----------
+
+  const speechAvailable =
+    "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+
+  const voiceSelect = $("voiceSelect");
+  const pitchInput = $("pitch");
+  const rateInput = $("rate");
+  let voices = [];
+  let narrationOn = false;
+
+  function loadVoices() {
+    if (!speechAvailable) return;
+    voices = speechSynthesis.getVoices().filter(v => /^en\b/i.test(v.lang));
+    const previous = voiceSelect.value;
+    voiceSelect.innerHTML = "";
+    if (!voices.length) {
+      const o = document.createElement("option");
+      o.textContent = "No English voices found";
+      voiceSelect.appendChild(o);
+      return;
+    }
+    voices.forEach((v, i) => {
+      const o = document.createElement("option");
+      o.value = String(i);
+      o.textContent = `${v.name} (${v.lang})`;
+      voiceSelect.appendChild(o);
+    });
+    voiceSelect.value = previous && voices[previous] ? previous : "0";
+  }
+
+  if (speechAvailable) {
+    loadVoices();
+    speechSynthesis.addEventListener("voiceschanged", loadVoices);
+  } else {
+    voiceSelect.innerHTML = "<option>Speech not supported here</option>";
+    voiceButton.disabled = true;
+  }
+
+  function speak(text, seconds) {
+    if (!speechAvailable) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = voices[Number(voiceSelect.value)] || null;
+    u.lang = "en-US";
+
+    // Nudge speed so each line fits its scene, within a comfortable range.
+    const words = text.trim().split(/\s+/).length;
+    const fit = Math.min(1.2, Math.max(0.85, words / (seconds * 2.65)));
+    u.rate = Number(rateInput.value) * fit;
+    u.pitch = Number(pitchInput.value);
+    speechSynthesis.speak(u);
+  }
+
+  // Your own narration clips, one per line. Put them next to this page as
+  // clips/line0.mp3 ... clips/line6.mp3. Missing files use the browser voice.
+  const LINE_NAMES = [[], [0], [1], [2], [3], [4], [5]];
+  // Your Cloudflare Worker, which holds the Inworld key. Replace with your URL.
+  const SPEAK_URL = "https://lucky-art-dc78.guestvrgt.workers.dev/voice";
+
+  let audioCtx = null;
+  let decodedClips = [];
+  let activeSources = [];
+
+  // Fetches narration for every line using the current names, so renamed
+  // players are spoken in your cloned voice. A failed line falls back to the browser voice.
+  function loadLiveClips() {
+    if (!SPEAK_URL.startsWith("https://") || SPEAK_URL.includes("YOUR-WORKER")) {
+      editorNote.textContent =
+        "Status: Worker address not set in index.html (SPEAK_URL still has YOUR-WORKER). Using the browser voice.";
+      return Promise.resolve();
+    }
+    let lastError = "";
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return Promise.resolve();
+    if (!audioCtx) audioCtx = new Ctx();
+    const resumed = audioCtx.state === "suspended"
+      ? audioCtx.resume() : Promise.resolve();
+    return resumed
+      .then(() => Promise.all(cues.map(cue =>
+        fetch(SPEAK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: cue.text(slides) }),
+        })
+          .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.arrayBuffer(); })
+          .then(buf => audioCtx.decodeAudioData(buf))
+          .catch(err => { lastError = String(err && err.message ? err.message : err); return null; })
+      )))
+      .then(bufs => {
+        decodedClips = bufs;
+        const ok = bufs.filter(Boolean).length;
+        editorNote.textContent = ok === cues.length
+          ? `Status: connected to your cloned voice (${bufs.filter(Boolean).length} lines, first is ${bufs[0].duration.toFixed(1)} s).`
+          : `Status: ${ok} of ${cues.length} lines came from the Worker. Last error: ${lastError || "unknown"}. Using the browser voice for the rest.`;
+      });
+  }
+
+  function playLine(index) {
+    if (!narrationOn) return;
+    stopNarration();
+    const buf = decodedClips[index];
+    if (audioCtx && buf) {
+      const src = audioCtx.createBufferSource();
+      src.buffer = buf;
+      src.connect(audioCtx.destination);
+      src.start();
+      activeSources.push(src);
+      return;
+    }
+    const next = cues[index + 1];
+    const seconds = ((next ? next.start : DURATION) - cues[index].start) / 1000;
+    speak(cues[index].text(slides), seconds);
+  }
+
+  function stopNarration() {
+    activeSources.forEach(s => { try { s.stop(); } catch (e) {} });
+    activeSources = [];
+    if (speechAvailable) speechSynthesis.cancel();
+  }
+
+  pitchInput.addEventListener("input", () => {
+    $("pitchOut").textContent = Number(pitchInput.value).toFixed(2);
+  });
+  rateInput.addEventListener("input", () => {
+    $("rateOut").textContent = Number(rateInput.value).toFixed(2);
+  });
+  // Preview plays your cloned clip directly when it's loaded, so you can
+  // tell whether the phone's audio works. Otherwise it uses the browser voice.
+  $("preview").addEventListener("click", () => {
+    const clip = decodedClips[0];
+    if (audioCtx && clip) {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const src = audioCtx.createBufferSource();
+      src.buffer = clip;
+      src.connect(audioCtx.destination);
+      src.start();
+      return;
+    }
+    speak(`At number five, it's ${slides[0].name}, a recent breakthrough creator.`, 3);
+  });
+
+  // ---------- Character editor ----------
+
+  const EDIT_FIELDS = [
+    { key: "name", label: "Name", type: "text" },
+    { key: "body", label: "Body", type: "color" },
+    { key: "accent", label: "Accent", type: "color" }
+  ];
+  const TOGGLES = [
+    { key: "ears", label: "Ears" },
+    { key: "hat", label: "Top hat" },
+    { key: "beard", label: "Beard" },
+    { key: "headband", label: "Headband" },
+    { key: "silhouette", label: "Silhouette" }
+  ];
+
+  function buildEditor() {
+    editorGrid.innerHTML = "";
+    slides.forEach((slide, i) => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const h = document.createElement("h3");
+      h.textContent = SLOT_LABELS[i];
+      card.appendChild(h);
+
+      EDIT_FIELDS.forEach(field => {
+        const label = document.createElement("label");
+        label.textContent = field.label;
+        const input = document.createElement("input");
+        input.type = field.type;
+        if (field.type === "text") input.maxLength = 16;
+        input.value = slide[field.key];
+        input.addEventListener("input", () => {
+          slide[field.key] = field.type === "text"
+            ? input.value.toUpperCase()
+            : input.value;
+          refresh();
+        });
+        label.appendChild(input);
+        card.appendChild(label);
+      });
+
+      const checks = document.createElement("div");
+      checks.className = "checks";
+      TOGGLES.forEach(t => {
+        const lab = document.createElement("label");
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = !!slide[t.key];
+        box.addEventListener("change", () => {
+          slide[t.key] = box.checked;
+          refresh();
+        });
+        lab.appendChild(box);
+        lab.append(t.label);
+        checks.appendChild(lab);
+      });
+      card.appendChild(checks);
+
+      editorGrid.appendChild(card);
+    });
+  }
+
+  // Rebuild characters after an edit, keep the current slide visible,
+  // and update the narration note.
+  function refresh() {
+    const current = activeSlide;
+    buildCharacters();
+    activeSlide = -2;
+    setSlide(current >= 0 ? current : -1);
+    updateNote();
+    if (narrationOn && playing && activeCue >= 0) playLine(activeCue);
+  }
+
+  function updateNote() {
+    editorNote.textContent =
+      "Narration uses your cloned voice through the Worker when it's set up, otherwise your browser voice. Press Play again after renaming players.";
+  }
+
+  $("resetChars").addEventListener("click", () => {
+    slides = structuredClone(DEFAULT_SLIDES);
+    buildEditor();
+    refresh();
+  });
+
+  // ---------- Playback ----------
+
+  const clamp = value => Math.max(0, Math.min(1, value));
+
+  function springBezier(progress) {
+    if (progress <= 0) return 0;
+    if (progress >= 1) return 1;
+
+    const bezier = (t, p1, p2) =>
+      3 * (1 - t) * (1 - t) * t * p1 +
+      3 * (1 - t) * t * t * p2 + t * t * t;
+
+    let low = 0;
+    let high = 1;
+    for (let i = 0; i < 16; i++) {
+      const mid = (low + high) / 2;
+      if (bezier(mid, .175, .32) < progress) low = mid;
+      else high = mid;
+    }
+    return bezier((low + high) / 2, .885, 1.275);
+  }
+
+  function resize() {
+    canvas.style.transform = `scale(${frame.clientWidth / 720})`;
+  }
+  new ResizeObserver(resize).observe(frame);
+  resize();
+
+  let startTime = 0;
+  let elapsed = 0;
+  let animationFrame = 0;
+  let activeSlide = -2;
+  let activeCue = -1;
+  let playing = false;
+
+  function setSlide(index) {
+    activeSlide = index;
+    titleScene.hidden = index >= 0;
+    playerScene.hidden = index < 0;
+
+    characters.forEach((node, i) => { node.hidden = i !== index; });
+
+    if (index < 0) {
+      frame.setAttribute(
+        "aria-label",
+        "Top five most influential Gorilla Tag ground players"
+      );
+      return;
+    }
+
+    const slide = slides[index];
+    rank.textContent = SLOT_LABELS[index].replace(" REVEAL", "");
+    name.textContent = slide.name;
+    accent.style.backgroundColor = slide.accent;
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle("active", i === Math.min(index, 4));
+    });
+
+    const phaseStart = index === 5 ? 14000 : slide.start;
+    const body = characters[index].querySelector(".monke");
+    body.style.animationDelay = `-${(elapsed - phaseStart) / 1000}s`;
+
+    frame.setAttribute(
+      "aria-label",
+      `Number ${slide.rank}: ${slide.name === "???" ? "mystery player" : slide.name}`
+    );
+  }
+
+  function render(t) {
+    elapsed = t;
+    let index = -1;
+    for (let i = 0; i < slides.length; i++) {
+      if (t >= slides[i].start) index = i;
+    }
+    if (index !== activeSlide) setSlide(index);
+
+    if (t < 3000) {
+      pills.forEach((pill, i) => {
+        const progress = clamp((t - (200 + i * 200)) / 200);
+        pill.style.opacity = String(clamp(progress * 4));
+        pill.style.transform = `scale(${springBezier(progress)})`;
+      });
+    }
+
+    let blink = 0;
+    if (t >= 12200 && t < 12380) blink = 1;
+    else if (t >= 12380 && t < 12400) blink = 1 - (t - 12380) / 20;
+    if (openEyes) openEyes.style.opacity = String(1 - blink);
+    if (closedEyes) closedEyes.style.opacity = String(blink);
+
+    const revealAge = t - 15500;
+    if (revealAge >= 0 && revealAge < 180) {
+      const p = revealAge / 180;
+      name.style.transform = `scale(${1 + .08 * Math.pow(1 - p, 3)})`;
+    } else {
+      name.style.transform = "scale(1)";
+    }
+
+    flash.style.opacity =
+      revealAge >= 0 && revealAge < 120
+        ? String(.24 * Math.pow(1 - revealAge / 120, 2))
+        : "0";
+
+    const tenths = Math.floor(t / 100);
+    const seconds = Math.floor(tenths / 10);
+    time.textContent =
+      `00:${String(seconds).padStart(2, "0")}.${tenths % 10}`;
+
+    let cueIndex = 0;
+    for (let i = 1; i < cues.length; i++) {
+      if (t >= cues[i].start) cueIndex = i;
+    }
+    if (cueIndex !== activeCue) {
+      activeCue = cueIndex;
+      if (t < DURATION) playLine(cueIndex);
+    }
+  }
+
+  function tick(now) {
+    const t = Math.min(DURATION, now - startTime);
+    render(t);
+
+    if (t < DURATION) {
+      animationFrame = requestAnimationFrame(tick);
+    } else {
+      playing = false;
+      canvas.classList.add("finished");
+      stopNarration();
+    }
+  }
+
+  function replay() {
+    cancelAnimationFrame(animationFrame);
+    stopNarration();
+    playing = true;
+    activeSlide = -2;
+    activeCue = -1;
+    canvas.classList.remove("finished");
+
+    const bodies = characters.map(node => node.querySelector(".monke"));
+    bodies.forEach(body => {
+      body.style.animation = "none";
+      body.style.animationDelay = "0s";
+    });
+    void canvas.offsetWidth;
+    bodies.forEach(body => { body.style.animation = ""; });
+
+    startTime = performance.now();
+    render(0);
+    animationFrame = requestAnimationFrame(tick);
+  }
+
+  // Silent replay: the animation only, no narration.
+  $("replay").addEventListener("click", () => {
+    narrationOn = false;
+    voiceButton.textContent = "Play With Voice";
+    voiceButton.setAttribute("aria-pressed", "false");
+    replay();
+  });
+
+  // Narration starts from this click, which browsers require for speech.
+  voiceButton.addEventListener("click", () => {
+    narrationOn = true;
+    voiceButton.textContent = "Restart With Voice";
+    voiceButton.setAttribute("aria-pressed", "true");
+    loadLiveClips().then(() => replay());
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopNarration();
+    if (!document.hidden && playing) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(tick);
+    }
+  });
+
+  window.addEventListener("pagehide", () => {
+    cancelAnimationFrame(animationFrame);
+    stopNarration();
+  });
+
+  buildCharacters();
+  buildEditor();
+  updateNote();
+  replay();
+})();
+</script>
+</body>
+</html>
